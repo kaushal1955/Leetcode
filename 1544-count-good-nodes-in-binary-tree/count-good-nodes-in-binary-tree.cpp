@@ -1,34 +1,19 @@
-/**
- * Definition for a binary tree node.
- * struct TreeNode {
- *     int val;
- *     TreeNode *left;
- *     TreeNode *right;
- *     TreeNode() : val(0), left(nullptr), right(nullptr) {}
- *     TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
- *     TreeNode(int x, TreeNode *left, TreeNode *right) : val(x), left(left), right(right) {}
- * };
- */
 class Solution {
-
 public:
-    int goodNodes(TreeNode* root) {
-        return dfs(root,root->val);
+    void solve(TreeNode* root,int& count,int max){
+        if(root==NULL){
+            return;
+        }
+        if(root->val>=max){
+            count++;
+            max=root->val;
+        }
+        solve(root->left,count,max);
+        solve(root->right,count,max);
     }
-
-private:
-    int dfs(TreeNode*node,int maxSoFar){
-        if(!node)return 0;
-        int count =0;
-        if(node->val>=maxSoFar)count=1;
-            maxSoFar=std::max(maxSoFar,node->val);
-            count +=dfs(node->left,maxSoFar);
-            count +=dfs(node->right,maxSoFar);
-            return count;
-
-        
-    };
+    int goodNodes(TreeNode* root) {
+        int count=0;
+        solve(root,count,root->val);
+        return count;
+    }
 };
-
-
-
