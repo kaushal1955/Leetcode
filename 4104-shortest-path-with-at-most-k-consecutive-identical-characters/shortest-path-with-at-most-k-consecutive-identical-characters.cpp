@@ -1,55 +1,92 @@
+
 class Solution {
 public:
-    int shortestPath(int n, vector<vector<int>>& edges, string labels, int k) {
+    int shortestPath(int n, vector<vector<int>>& edges,
+                     string labels, int k) {
+
+        // Step 1: Build adjacency list
         vector<vector<pair<int, int>>> adj(n);
-        for (const auto& edge : edges) {
-            int u = edge[0];
-            int v = edge[1];
-            int w = edge[2];
+
+        for (auto &e : edges) {
+            int u = e[0];
+            int v = e[1];
+            int w = e[2];
+
             adj[u].push_back({v, w});
         }
-        
+
+        // Step 2: Distance array
+        // dist[node][consecutive_count]
+        const long long INF = 1e18;
+
+        vector<vector<long long>> dist(
+            n, vector<long long>(k + 1, INF)
+        );
+
+        // Step 3: Min heap
+        // {distance, node, consecutive_count}
+        using State = tuple<long long, int, int>;
+
         priority_queue<
-            tuple<long long, int, int>, 
-            vector<tuple<long long, int, int>>, 
-            greater<tuple<long long, int, int>>
+            State,
+            vector<State>,
+            greater<State>
         > pq;
-        
-        vector<vector<long long>> minCost(n, vector<long long>(k + 1, 1e18));
-        
+
+        // Step 4: Initial state
+        dist[0][1] = 0;
         pq.push({0, 0, 1});
-        minCost[0][1] = 0;
-        
+
+        // Step 5: Dijkstra
         while (!pq.empty()) {
-            auto [currentCost, u, count] = pq.top();
+
+            auto [d, u, cnt] = pq.top();
             pq.pop();
-            
-            if (u == n - 1) {
-                return currentCost;
-            }
-            
-            if (currentCost > minCost[u][count]) {
+
+            // Ignore outdated states
+            if (d != dist[u][cnt]) {
                 continue;
             }
-            
-            for (auto& [v, weight] : adj[u]) {
-                int nextCount;
-                if (labels[v] == labels[u]) {
-                    nextCount = count + 1;
-                } else {
-                    nextCount = 1;
+
+            // Destination reached
+            if (u == n - 1) {
+                return (int)d;
+            }
+
+            // Explore neighbors
+            for (auto &[v, wt] : adj[u]) {
+
+                int newCount;
+
+                if (labels[u] == labels[v]) {
+                    newCount = cnt + 1;
                 }
-                
-                if (nextCount <= k) {
-                    long long newCost = currentCost + weight;
-                    if (newCost < minCost[v][nextCount]) {
-                        minCost[v][nextCount] = newCost;
-                        pq.push({newCost, v, nextCount});
-                    }
+                else {
+                    newCount = 1;
+                }
+
+                // Check constraint
+                if (newCount > k) {
+                    continue;
+                }
+
+                long long newDist = d + wt;
+
+                // Relaxation
+                if (newDist < dist[v][newCount]) {
+
+                    dist[v][newCount] = newDist;
+
+                    pq.push({
+                        newDist,
+                        v,
+                        newCount
+                    });
                 }
             }
         }
-        
+
+        // No valid path exists
         return -1;
     }
 };
